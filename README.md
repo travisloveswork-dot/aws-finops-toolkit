@@ -15,11 +15,18 @@ Resources managed by the scripts must utilize these metadata tags:
 * `DoNotStop`: (Optional) Set to `true` to exempt specific critical resources.
 
 ## Safety Features
-* **Dry-Run Mode:** Local execution scripts default to simulation mode (`DRY_RUN = True`) to prevent accidental changes.
+* **Dry-Run Mode:** Scripts default to safe simulation mode (`DRY_RUN = True`). Execution mode can be toggled via the `DRY_RUN` environment variable without modifying source code.
 * **Least-Privilege Security:** Restricts IAM roles to strict read and stop actions only.
 
 ## Usage
 Run scripts locally or from an authenticated terminal session:
+
 (bash)
+# Run auto-stopper in safe simulation (dry-run) mode
 python3 scripts/auto_stop_dev.py
+
+# Run auto-stopper in live mode (executes actual shutdowns)
+DRY_RUN=false python3 scripts/auto_stop_dev.py
+
+# Run unattached EBS volume scanner
 python3 scripts/ebs_cleanup.py
