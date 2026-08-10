@@ -1,24 +1,25 @@
-# aws-finops-toolkit-
-Automate AWS cloud cost savings using Python. Features tag-driven non-production auto-stoppage, dry-run safety, and least-privilege security.
-
-
 # AWS FinOps Automation Toolkit
 
-A collection of production-grade Python scripts designed to optimize cloud infrastructure spend, enforce resource governance, and automate cost-saving operations using AWS Boto3.
+A production-grade collection of Python automation scripts and Infrastructure-as-Code templates designed to optimize cloud infrastructure spend, eliminate idle resources, and enforce resource governance using AWS Boto3.
 
-## Features Included
-* **Tag-Based Non-Production Auto-Stopper (`scripts/auto_stop_dev.py`):** Automatically shuts down idle development, testing, and staging resources (EC2 and RDS) outside of business hours based on resource tags rather than hardcoded IDs.
+## Repository Structure
+* `scripts/auto_stop_dev.py`: Tag-driven automation script to gracefully shut down non-prod EC2 and RDS instances outside of business hours.
+* `scripts/ebs_cleanup.py`: Scans and cleans up unattached (idle) EBS volumes accumulating storage charges.
+* `lambda/auto_stop_lambda.py`: Serverless adaptation of the auto-stopper designed to run natively inside AWS Lambda.
+* `terraform/main.tf`: Infrastructure-as-Code configuration provisioning secure IAM roles and execution policies.
+* `security/iam-policy.json`: Least-privilege IAM policy reference document.
 
-## Tagging Governance
-For the automation scripts to recognize and manage resources, they must be tagged accordingly:
+## Governance & Tagging Taxonomy
+Resources managed by the scripts must utilize these metadata tags:
 * `Environment`: Must be set to `dev`, `staging`, or `test`.
-* `DoNotStop`: (Optional) Set to `true` to override and exempt a specific resource from automation.
+* `DoNotStop`: (Optional) Set to `true` to exempt specific critical resources.
 
-## Safety & Security Features
-* **Dry-Run Mode:** Defaults to a simulation mode (`DRY_RUN = True`) that outputs target resources to the console without issuing live API shutdown commands.
-* **Least-Privilege IAM:** Designed to run with minimal required permissions (see `security/iam-policy.json`).
+## Safety Features
+* **Dry-Run Mode:** Local execution scripts default to simulation mode (`DRY_RUN = True`) to prevent accidental changes.
+* **Least-Privilege Security:** Restricts IAM roles to strict read and stop actions only.
 
 ## Usage
-Run the auto-stopper script from an authenticated terminal session:
+Run scripts locally or from an authenticated terminal session:
 (bash)
 python3 scripts/auto_stop_dev.py
+python3 scripts/ebs_cleanup.py
