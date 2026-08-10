@@ -1,7 +1,9 @@
+import os
 import boto3
 
-# CONFIGURATION: Set to True to simulate stops without actually shutting down resources
-DRY_RUN = True
+# Read DRY_RUN from environment variables (defaults to True for local safety)
+# In AWS Lambda or production, you can set DRY_RUN=false via configuration
+DRY_RUN = os.environ.get('DRY_RUN', 'True').lower() == 'true'
 
 print(f"=== AWS FinOps: Non-Production Auto-Stopper ===")
 print(f"Mode: {'DRY RUN (Simulation)' * DRY_RUN or 'LIVE (Actions will be executed)'}\n")
@@ -12,7 +14,6 @@ ec2 = boto3.resource('ec2')
 ec2_to_stop = []
 
 for instance in ec2.instances.all():
-    # Only check running instances
     if instance.state['Name'] != 'running':
         continue
         
@@ -29,7 +30,6 @@ for instance in ec2.instances.all():
             if tag['Key'] == 'Name':
                 name = tag['Value']
                 
-    # Criteria: Must be dev/staging/test, and NOT explicitly opted-out
     if environment in ['dev', 'staging', 'test'] and not do_not_stop:
         ec2_to_stop.append(instance.id)
         print(f"  [TARGET] EC2 ID: {instance.id} | Name: {name} | Env: {environment}")
@@ -59,12 +59,10 @@ try:
         db_id = db['DBInstanceIdentifier']
         db_status = db['DBInstanceStatus']
         
-        # Only check available (running) instances
         if db_status != 'available':
             print(f"  [SKIP]   RDS DB: {db_id} | Status: {db_status}")
             continue
             
-        # Fetch tags for RDS instance
         tags_response = rds_client.list_tags_for_resource(ResourceName=db['DBInstanceArn'])
         tags = tags_response.get('TagList', [])
         
